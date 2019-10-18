@@ -20,6 +20,8 @@ const int ADDRESS = 1;
 const int DISPLAY_TIME  = 2000 / CYCLE_TIME;
 const int SDR_POLL_TIME = 1000 / CYCLE_TIME;
 
+const int SDR_FAIL_COUNT = 3;
+
 long XIT ; // Xmitter Incremental Tuning
 
 bool encoderTouched = false;
@@ -34,6 +36,7 @@ unsigned long ifFreqHz = 0UL;
 char sdrBuffer[50];
 int sdrIndex = 0;
 int sdrCount = 0;
+int sdrFails = 0;
 
 byte radioBuffer[5];
 int radioIndex = 0;
@@ -118,10 +121,17 @@ void loop()
 
   sdrCount++;
   if (sdrCount >= SDR_POLL_TIME) {
-    if (!sdrConnected)
+    if (!sdrConnected) {
       Serial.write("ID;");
-    else if (radioConnected)
-      Serial.write("FA;");
+    } else if (radioConnected) {
+      if (sdrFails > SDR_FAIL_COUNT) {
+        sdrConnected = false;
+		showConnections();
+      } else {
+        Serial.write("FA;");
+        sdrFails++;
+      }
+    }
 
     sdrCount = 0;
   }
@@ -162,6 +172,7 @@ void processID()
 {
   if (sdrIndex == 6 && memcmp(sdrBuffer, "ID019;", 6) == 0) {
     sdrConnected = true;
+    sdrFails = 0;
     showConnections();
   }
 }
@@ -172,6 +183,9 @@ void processFreq()
     // The RX frequency in Hertz minus the 10 GHz part.
     rxFreqHz = (sdrBuffer[8]  - '0') * 100000UL    + (sdrBuffer[9]  - '0') * 10000UL    + (sdrBuffer[10] - '0') * 1000UL +
                (sdrBuffer[11] - '0') * 100UL       + (sdrBuffer[12] - '0') * 10UL       + (sdrBuffer[13] - '0');
+
+    if (sdrFails > 0)
+      sdrFails--;
 }
 
 bool calculateFreq()
