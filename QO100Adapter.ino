@@ -17,8 +17,9 @@ const int CYCLE_TIME = 20;
 
 const int ADDRESS = 1;
 
-const int DISPLAY_TIME  = 2000 / CYCLE_TIME;
-const int SDR_POLL_TIME = 1000 / CYCLE_TIME;
+const int DISPLAY_TIME    = 2000 / CYCLE_TIME;
+const int RADIO_POLL_TIME = 1000 / CYCLE_TIME;
+const int SDR_POLL_TIME   = 1000 / CYCLE_TIME;
 
 const int SDR_FAIL_COUNT = 3;
 
@@ -109,7 +110,7 @@ void loop()
 
   if (radioSerial.available()) {
     int c = radioSerial.read();
-	radioBuffer[radioIndex++] = c;
+	  radioBuffer[radioIndex++] = c;
 
     if (radioIndex == 5) {
       if (!radioConnected)
@@ -192,7 +193,7 @@ bool calculateFreq()
 {
   txFreqHz = rxFreqHz + 2400000000UL - 500000UL;  
 
-  unsigned long new IFFreqHz = rxFreqHz + XIT + 432000000UL - 500000UL;
+  unsigned long newIFFreqHz = rxFreqHz + XIT + 432000000UL - 500000UL;
 
   if (newIFFreqHz != ifFreqHz) {
     ifFreqHz = newIFFreqHz;
@@ -308,28 +309,28 @@ void saveXIT()
 
 void unlockRadio()
 {
-  radioSerial.write(0x00); // DATA1 = null
-  radioSerial.write(0x00); // DATA2 = null
-  radioSerial.write(0x00); // DATA3 = null
-  radioSerial.write(0x00); // DATA4 = null
+  radioSerial.write(byte(0x00)); // DATA1 = null
+  radioSerial.write(byte(0x00)); // DATA2 = null
+  radioSerial.write(byte(0x00)); // DATA3 = null
+  radioSerial.write(byte(0x00)); // DATA4 = null
   radioSerial.write(0x80); // DATA5 = 80 (LOCK OFF Opcode)
 }
 
 void readRXStatus()
 {
-  radioSerial.write(0x00); // DATA1 = null
-  radioSerial.write(0x00); // DATA2 = null
-  radioSerial.write(0x00); // DATA3 = null
-  radioSerial.write(0x00); // DATA4 = null
-  radioSerial.write(0xE7); // DATA5 = E7 (Read RX Status Opcode)
+  radioSerial.write(byte(0x00)); // DATA1 = null
+  radioSerial.write(byte(0x00)); // DATA2 = null
+  radioSerial.write(byte(0x00)); // DATA3 = null
+  radioSerial.write(byte(0x00)); // DATA4 = null
+  radioSerial.write(0xE7);       // DATA5 = E7 (Read RX Status Opcode)
 }
 
 void setRadioFrequency()
 {
-  byte one   = (((ifFreqHZ / 100000000UL) & 0x0FUL) << 4) | (((ifFreqHZ / 10000000UL) & 0x0FUL) << 0);
-  byte two   = (((ifFreqHZ / 1000000UL)   & 0x0FUL) << 4) | (((ifFreqHZ / 100000UL)   & 0x0FUL) << 0);
-  byte three = (((ifFreqHZ / 10000UL)     & 0x0FUL) << 4) | (((ifFreqHZ / 1000UL)     & 0x0FUL) << 0);
-  byte four  = (((ifFreqHZ / 100UL)       & 0x0FUL) << 4) | (((ifFreqHZ / 10UL)       & 0x0FUL) << 0);
+  byte one   = (((ifFreqHz / 100000000UL) & 0x0FUL) << 4) | (((ifFreqHz / 10000000UL) & 0x0FUL) << 0);
+  byte two   = (((ifFreqHz / 1000000UL)   & 0x0FUL) << 4) | (((ifFreqHz / 100000UL)   & 0x0FUL) << 0);
+  byte three = (((ifFreqHz / 10000UL)     & 0x0FUL) << 4) | (((ifFreqHz / 1000UL)     & 0x0FUL) << 0);
+  byte four  = (((ifFreqHz / 100UL)       & 0x0FUL) << 4) | (((ifFreqHz / 10UL)       & 0x0FUL) << 0);
 
   radioSerial.write(one);
   radioSerial.write(two);
@@ -346,7 +347,7 @@ bool processRadio()
 
   if (checksum > 0U) {
     radioConnected = true;
-    return true
+    return true;
   } else {
     return false;
   }
